@@ -1,0 +1,23 @@
+language: generic
+
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t jheehg/react-test-app -f ./frontend/Dockerfile.dev ./frontend
+
+script:
+  - docker run -e CI=true jheehg/react-test-app npm run test
+
+after_success:
+  - docker build -t jheehg/docker-frontend ./frontend
+  - docker build -t jheehg/docker-backend  ./backend
+  - docker build -t jheehg/docker-nginx    ./nginx
+
+  - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_ID" --password-stdin
+
+  - docker push jheehg/docker-frontend
+  - docker push jheehg/docker-backend
+  - docker push jheehg/docker-nginx
